@@ -1,0 +1,60 @@
+#include<iostream>
+#include<algorithm>
+#include<cstdio>
+#include<vector>
+#include<math.h>
+using namespace std;
+bool cmp(int a,int b){
+    return a > b;
+}
+const int MAX = 1000;
+int main(){
+    int N;cin>>N;
+    vector<int> num;
+    int tmp;
+    for(int i=0;i<N;i++) {
+        scanf("%d",&tmp);
+        num.push_back(tmp);
+    }
+    sort(num.begin(),num.end(),cmp);
+    int row,col;
+    row = (int)sqrt((double)N);
+    while(N%row != 0){
+        row++;
+    }
+    col = N/row;
+    if(col>row){
+        int tmp =row;
+        row = col;
+        col = tmp;
+    }
+    int print[MAX][MAX];
+    int count = 0,level=0;
+    while(count < N ){
+        for(int i=level;i<col-level;i++){
+            print[level][i] = num[count];
+            count++;
+        }
+        for(int i=level+1;i<row-level;i++){
+            print[i][col-level-1] = num[count];
+            count++;
+        }
+        for(int i=col-2-level;i>=level;i--){
+            print[row-1-level][i] = num[count];
+            count++;
+        }
+        for(int i=row-2-level;i>level;i--){
+            print[i][level] = num[count];
+            count++;
+        }
+        level++;
+    }
+    for(int i=0;i<row;i++){
+        printf("%d",print[i][0]);
+        for(int j=1;j<col;j++){
+            printf(" %d",print[i][j]);
+        }
+        printf("\n");
+    }
+    return 0;
+}
