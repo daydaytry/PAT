@@ -1,0 +1,115 @@
+// start:10:30
+#include <iostream>
+#include<algorithm>
+#include<cstring>
+#include<vector>
+using namespace std;
+#define MAX 8
+#define INFI 86400
+typedef struct CNode{
+    char plate[MAX];
+    int tin;
+    int tout;
+    char flag[4];
+}*Car;
+int Conversion(int hh,int mm,int ss){
+    return (hh*3600+mm*60+ss);
+}
+bool cmp_in(Car a,Car b){
+    return a->tin < b->tin;
+}
+bool cmp_total(Car a,Car b){
+    if(a->tin == b->tin)
+        return (strcmp(a->plate,b->plate) < 0) ;
+    return (a->tin > b->tin) ;
+}
+bool cmp_plate(Car a,Car b){
+    if(strcmp(a->plate , b->plate) == 0)
+        return a->tin < b->tin;
+    return (strcmp(a->plate , b->plate) < 0);
+}
+int main(){
+    vector<Car> list,ans;
+    vector<int> queries;
+    int n,k;cin>>n>>k;
+    Car tmp;
+    char flag[4];
+    int hh,mm,ss;
+    for(int i=0;i<n;i++){
+        tmp = (Car)malloc(sizeof(CNode));
+        scanf("%s %d:%d:%d %s",&tmp->plate,&hh,&mm,&ss,&tmp->flag);
+        if(Conversion(hh,mm,ss)>=INFI) continue;
+        tmp->tin = Conversion(hh,mm,ss);
+        tmp->tout = Conversion(hh,mm,ss);
+        list.push_back(tmp);
+    }
+    sort(list.begin(),list.end(),cmp_plate);
+    //合并进出时间
+    for(int i=0;(i+1)<n;i++){
+        //printf("%s %d %d %s\n",list[i]->plate,list[i]->tin,list[i]->tout,list[i]->flag);
+        if(list[i]->flag[0] == 'i'){
+            int src = i;
+            while((i+1)<n){
+                if(strcmp(list[i+1]->plate,list[src]->plate) != 0)
+                    break;
+                i++;
+                if(list[i]->flag[0] == 'o'){
+                    list[src]->tout = list[i]->tin;
+                    ans.push_back(list[src]);
+                    //cout<<i<<endl;
+                    break;
+                }
+                src = i;
+            }
+        }
+    }
+    sort(ans.begin(),ans.end(),cmp_in);
+    // for(int i=0;i<ans.size();i++){
+    //     printf("%s %d %d %s\n",ans[i]->plate,ans[i]->tin,ans[i]->tout,ans[i]->flag);
+    // }
+    for(int i=0;i<k;i++){
+        scanf("%d:%d:%d\n",&hh,&mm,&ss);
+        queries.push_back(Conversion(hh,mm,ss));
+        //cout<<queries[i]<<endl;
+    }
+    //获取车辆数目
+    vector<int> count;
+    int src=0,sign = 0;
+    for(int i=0;i<queries.size();i++){
+        count.push_back(0);
+        for(int j=src;j<ans.size();j++){
+            if(queries[i] >= ans[j]->tin && queries[i] < ans[j]->tout){
+                count[i]++;
+            }
+        }
+    }
+    for(int i=0;i<queries.size();i++){
+        cout<<count[i]<<endl;
+    }
+    vector<Car> max;
+    sort(ans.begin(),ans.end(),cmp_plate);
+    for(int i=0; i < ans.size(); i++){
+        int total=ans[i]->tout - ans[i]->tin;
+        while((i+1)<ans.size()){
+            if(strcmp(ans[i]->plate,ans[i+1]->plate) == 0){
+                ++i;
+                total += (ans[i]->tout - ans[i]->tin);
+            }
+            else break;
+        }
+        ans[i]->tin = total;
+        max.push_back(ans[i]);
+    }
+    sort(max.begin(),max.end(),cmp_total);
+    printf("%s",max[0]->plate);
+    for(int i=1;i<max.size();i++){
+        if(max[i-1]->tin != max[i]->tin)
+            break;
+        printf(" %s",max[i]->plate);
+    }
+    hh = max[0]->tin / 3600;
+    mm = (max[0]->tin % 3600) / 60;
+    ss = (max[0]->tin % 3600) % 60;
+    printf(" %02d:%02d:%02d\n",hh,mm,ss);
+    return 0;
+}
